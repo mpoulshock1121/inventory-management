@@ -161,6 +161,26 @@ def get_order(order_id: str):
         raise HTTPException(status_code=404, detail="Order not found")
     return order
 
+class CreateOrderRequest(BaseModel):
+    order_number: str
+    customer: str
+    items: List[dict]
+    status: str
+    order_date: str
+    expected_delivery: str
+    total_value: float
+    actual_delivery: Optional[str] = None
+    warehouse: Optional[str] = None
+    category: Optional[str] = None
+
+@app.post("/api/orders", response_model=Order)
+def create_order(order_data: CreateOrderRequest):
+    """Create a new order and append to in-memory list"""
+    new_id = str(len(orders) + 1)
+    new_order = {**order_data.model_dump(), "id": new_id}
+    orders.append(new_order)
+    return new_order
+
 @app.get("/api/demand", response_model=List[DemandForecast])
 def get_demand_forecasts():
     """Get demand forecasts"""

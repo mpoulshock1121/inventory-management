@@ -148,7 +148,8 @@
                   v-for="transaction in recentTransactions"
                   :key="transaction.id"
                   class="clickable-row"
-                  @click="handleTransactionClick(transaction)"
+                  :class="{ 'selected-row': selectedTransaction && selectedTransaction.id === transaction.id }"
+                  @click="selectTransaction(transaction)"
                 >
                   <td class="transaction-id">{{ transaction.id.toString().padStart(3, '0') }}</td>
                   <td class="transaction-description">{{ transaction.description }}</td>
@@ -158,6 +159,38 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div v-if="selectedTransaction" class="transaction-detail">
+            <div class="transaction-detail-header">
+              <span class="transaction-detail-title">Transaction Details</span>
+              <button class="transaction-detail-close" @click="selectedTransaction = null">&times;</button>
+            </div>
+            <div class="transaction-detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">ID</span>
+                <span class="detail-value">{{ selectedTransaction.id }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Description</span>
+                <span class="detail-value">{{ selectedTransaction.description }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Vendor</span>
+                <span class="detail-value">{{ selectedTransaction.vendor }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Date</span>
+                <span class="detail-value">{{ selectedTransaction.date }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Amount</span>
+                <span class="detail-value">{{ currencySymbol }}{{ selectedTransaction.amount.toLocaleString() }}</span>
+              </div>
+              <div class="detail-item" v-if="selectedTransaction.category">
+                <span class="detail-label">Category</span>
+                <span class="detail-value">{{ selectedTransaction.category }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -197,6 +230,9 @@ export default {
     // Modal state
     const showCostModal = ref(false)
     const selectedCostData = ref(null)
+
+    // Transaction detail panel state
+    const selectedTransaction = ref(null)
 
     // Use shared filters
     const { selectedPeriod, getCurrentFilters } = useFilters()
@@ -447,9 +483,8 @@ export default {
       return spendingCategoryMap[category] || productCategoryMap[category] || category
     }
 
-    const handleTransactionClick = (transaction) => {
-      console.log('Transaction clicked:', transaction)
-      alert(`Transaction Details:\n\nID: ${transaction.id}\nDescription: ${transaction.description}\nVendor: ${transaction.vendor}\nDate: ${formatDateShort(transaction.date)}\nAmount: $${transaction.amount.toLocaleString()}`)
+    const selectTransaction = (transaction) => {
+      selectedTransaction.value = selectedTransaction.value?.id === transaction.id ? null : transaction
     }
 
     const showCostDetail = (monthData) => {
@@ -481,7 +516,8 @@ export default {
       formatDateShort,
       translateMonth,
       translateCategory,
-      handleTransactionClick,
+      selectedTransaction,
+      selectTransaction,
       showCostModal,
       selectedCostData,
       showCostDetail,
@@ -848,5 +884,70 @@ export default {
 
 .text-right {
   text-align: right;
+}
+
+.selected-row {
+  background: #eff6ff !important;
+}
+
+.transaction-detail {
+  margin-top: 1rem;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  background: #f0f9ff;
+}
+
+.transaction-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.transaction-detail-title {
+  font-weight: 600;
+  font-size: 0.938rem;
+  color: #1e40af;
+}
+
+.transaction-detail-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: #64748b;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 0.25rem;
+}
+
+.transaction-detail-close:hover {
+  color: #0f172a;
+}
+
+.transaction-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.detail-value {
+  font-size: 0.875rem;
+  color: #0f172a;
+  font-weight: 500;
 }
 </style>
